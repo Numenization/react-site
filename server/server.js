@@ -37,7 +37,7 @@ app.post("/api/register", async (req, res) => {
 
   if (!username || !email || !password) {
     res.status(400).json({
-      message: `Invalid credentials - Username: ${username} Email: ${email} Password:${password}`
+      error: `Invalid credentials - Username: ${username} Email: ${email} Password:${password}`
     });
     return;
   }
@@ -48,13 +48,12 @@ app.post("/api/register", async (req, res) => {
     pass: password
   };
 
-  let wait = await verifyInformation(options, verification => {
+  await verifyInformation(options, verification => {
     if (!(verification === "good")) {
-      res.status(400).json({ msg: verification });
+      res.status(400).json({ error: verification });
       console.log(verification);
       return;
     }
-
     var salt = crypto.randomBytes(32).toString("hex");
     var saltedPass = password + salt;
 
@@ -74,11 +73,12 @@ app.post("/api/register", async (req, res) => {
           [options.username, options.email, options.pass, options.salt],
           err => {
             if (err) {
-              res.json({ msg: `Failed to insert into table: ${err}` });
+              res.json({ error: `Failed to insert into table: ${err}` });
               return console.error(err);
             }
+            console.log(`Added ${options.username} to database`);
             res.json({
-              msg: `Inserted into table (${options.username} | ${options.email})`
+              message: `Inserted into table (${options.username} | ${options.email})`
             });
           }
         );
@@ -88,7 +88,6 @@ app.post("/api/register", async (req, res) => {
 
 app.get("/api/users/all/", (req, res) => {
   let users = [];
-  console.log("Fetching from table 'users'");
   let promise = new Promise((resolve, reject) => {
     db.each(
       "SELECT username username, email email, id id FROM users;",
@@ -112,11 +111,10 @@ app.get("/api/users/all/", (req, res) => {
 
   promise.then(
     result => {
-      console.log(`Returned with ${result} users`);
       if (result > 0) {
         res.json(users);
       } else {
-        res.json({ msg: "Users table is empty" });
+        res.json({ message: "Users table is empty" });
       }
     },
     err => {
@@ -125,10 +123,28 @@ app.get("/api/users/all/", (req, res) => {
   );
 });
 
+app.delete("/api/users/", (req, res) => {
+  // this is where we should check if the user requesting this is an admin
+  console.log("delete");
+  if (!req.body.id) {
+    res.status(400).json({
+      message: 'Bad post request: must have "id" (string)'
+    });
+  }
+  console.log(`Trying to delete person with ID ${req.body.id}`);
+  db.run(`DELETE FROM users WHERE id = ?`, req.body.id, err => {
+    if (err) {
+      res.status(500).json({ message: `Failed to delete from table: ${err}` });
+      return console.error(err);
+    }
+    console.log(`Deleted user with ID ${req.body.id} from database`);
+    res.json({ message: `Deleted from table (${req.body.id})` });
+  });
+});
+
 app.get("/api/users/", (req, res) => {
   var id = req.query.id;
   if (!id || isNaN(id)) {
-    console.log("bad request");
     res.status(400).json({ message: "Bad request, missing or invalid ID" });
     return;
   }
@@ -179,20 +195,24 @@ async function verifyInformation(options, cb) {
 
   // verify username and email is unique
   var promise = new Promise((resolve, reject) => {
-    db.each("SELECT username username, email email FROM users;", (err, row) => {
-      if (row.username === options.username) {
-        reject(Error("Username is already in use!"));
-      }
+    db.each(
+      "SELECT username username, email email FROM users;",
+      (err, row) => {
+        if (row.username === options.username) {
+          reject(Error("Username is already in use!"));
+        }
 
-      if (row.email === options.email) {
-        reject(Error("Email is already in use!"));
+        if (row.email === options.email) {
+          reject(Error("Email is already in use!"));
+        }
+      },
+      () => {
+        resolve("good");
       }
-    });
+    );
   });
-
   promise
     .then(result => {
-      console.log("Good");
       status = "good";
     })
     .catch(err => {

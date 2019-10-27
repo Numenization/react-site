@@ -1,3 +1,5 @@
+/* ============== GENERAL CSS =============== */
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1em;
@@ -5,6 +7,31 @@ body {
   margin: 0;
   background-color: #333;
 }
+
+#content-container {
+  width: calc(100% - 4.5em);
+  height: calc(100vh - 6.25em);
+  background-color: #555;
+  color: white;
+  padding: 2em 0;
+  margin: 0 auto;
+}
+
+#content {
+  padding: 1em;
+}
+
+h1 {
+  padding: 1em;
+  margin: 0;
+}
+
+h3 {
+  padding: 0 2em;
+  margin: 0;
+}
+
+/* ============== NAVBAR CSS =============== */
 
 #navbar {
   width: 100%;
@@ -73,28 +100,7 @@ body {
   margin: 0;
 }
 
-#content-container {
-  width: calc(100% - 4.5em);
-  height: calc(100vh - 6.25em);
-  background-color: #555;
-  color: white;
-  padding: 2em 0;
-  margin: 0 auto;
-}
-
-#content {
-  padding: 1em;
-}
-
-h1 {
-  padding: 1em;
-  margin: 0;
-}
-
-h3 {
-  padding: 0 2em;
-  margin: 0;
-}
+/* ============== REGISTRATION FORM CSS =============== */
 
 #register-form {
   font-size: 150%;
@@ -139,6 +145,8 @@ h3 {
   background-color: #454053;
 }
 
+/* ============== TABLE CSS =============== */
+
 .user-list {
   margin: 2em auto;
   width: 40%;
@@ -175,4 +183,52 @@ h3 {
 
 #users-row-even {
   background-color: white;
+}
+
+/* ============== MODAL CSS =============== */
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 10em;
+}
+
+.modal {
+  background-color: #333;
+  border-radius: 15px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+.modal h1,
+h2,
+h3 {
+  margin: 0;
+  padding: 0;
+}
+
+.modal-close-button {
+  display: block;
+  float: right;
+  background-color: rgba(0, 0, 0, 0);
+  border: none;
+}
+
+.modal-close-button img {
+  max-height: 2em;
+  width: auto;
+  transition: filter 100ms linear;
+  -webkit-transition: filter 100ms linear;
+  -moz-transition: filter 100ms linear;
+}
+
+.modal-close-button img:hover {
+  filter: hue-rotate(55deg);
+  transition: filter 100ms linear;
+  -webkit-transition: filter 100ms linear;
+  -moz-transition: filter 100ms linear;
 }

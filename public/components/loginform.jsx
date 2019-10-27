@@ -21,7 +21,6 @@ class registerForm extends React.Component {
         hashedPass: pass
       },
       () => {
-        console.log(this.state);
         fetch("/api/register", {
           method: "post",
           headers: { "Content-Type": "application/json" },
@@ -32,11 +31,14 @@ class registerForm extends React.Component {
           })
         })
           .then(res => {
-            if (res.ok) return res.json();
-            else return new Error("Failed to post registration");
+            return res.json();
           })
           .then(body => {
-            console.log(body);
+            if (body.error) {
+              return Promise.reject(Error(body.error));
+            } else {
+              console.log(body.message);
+            }
           })
           .catch(err => {
             console.error(err);

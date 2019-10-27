@@ -19,7 +19,7 @@ class NavBar extends React.Component {
           </li>
           <li className="last">
             <NavLink to="/login" activeClassName="active">
-              Login
+              Register
             </NavLink>
           </li>
         </ul>

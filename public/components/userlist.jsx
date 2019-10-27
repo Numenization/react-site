@@ -1,19 +1,52 @@
 import React from "react";
 import { Table, TableRow } from "./table";
+import Modal from "./modal";
 
 class UserList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { users: null, error: null };
+    this.state = {
+      users: null,
+      error: null,
+      showModal: false,
+      selectedUser: null
+    };
 
     this.rowClick = this.rowClick.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
+    this.getUsers = this.getUsers.bind(this);
+    this.visitPage = this.visitPage.bind(this);
   }
 
   rowClick(e) {
-    console.log(e.target.parentNode);
+    const columnData = e.target.getAttribute("data-columns").split(",");
+    this.setState(
+      {
+        users: this.state.users,
+        error: this.state.error,
+        showModal: this.state.showModal,
+        selectedUser: columnData
+      },
+      () => {
+        this.toggleModal();
+      }
+    );
   }
 
-  componentDidMount() {
+  visitPage() {
+    window.location = `user?id=${this.state.selectedUser[0]}`;
+  }
+
+  toggleModal() {
+    this.setState({
+      users: this.state.users,
+      error: this.state.error,
+      showModal: !this.state.showModal,
+      selectedUser: this.state.selectedUser
+    });
+  }
+
+  getUsers() {
     fetch("/api/users/all/", {
       method: "get",
       headers: { "Content-Type": "application/json" }
@@ -28,44 +61,72 @@ class UserList extends React.Component {
         }
         this.setState({
           users: body,
-          error: this.state.error
+          error: this.state.error,
+          showModal: this.state.showModal,
+          selectedUser: this.state.selectedUser
         });
       })
       .catch(err => {
         this.setState({
           users: this.state.users,
-          error: err
+          error: err,
+          showModal: this.state.showModal,
+          selectedUser: this.state.selectedUser
         });
       });
   }
 
+  componentDidMount() {
+    this.getUsers();
+  }
+
   render() {
-    if (this.state.users) {
+    const modalInner = this.state.selectedUser ? (
+      <div>
+        <h1>User: {this.state.selectedUser[1]}</h1>
+        <h3>ID: {this.state.selectedUser[0]}</h3>
+        <h3>Email: {this.state.selectedUser[2]}</h3>
+        <button onClick={this.visitPage}>Go to User Page</button>
+      </div>
+    ) : null;
+
+    if (!this.state.users) {
       return (
         <div className="user-list">
-          <Table
-            className="user-table"
-            tHeadClass="users-head-row"
-            tBodyClass="users-body"
-            columns={["ID", "Username", "Email"]}
-          >
-            {this.state.users.map((user, key) => {
-              return (
-                <TableRow
-                  rownum={key}
-                  key={key}
-                  data={user}
-                  className="users-row"
-                  click={this.rowClick}
-                ></TableRow>
-              );
-            })}
-          </Table>
+          <h1>No users in database!</h1>
         </div>
       );
-    } else {
-      return <h3>Loading...</h3>;
     }
+
+    return (
+      <div className="user-list">
+        <Modal
+          show={this.state.showModal}
+          onClose={this.toggleModal}
+          style={{ width: "20%" }}
+        >
+          {modalInner}
+        </Modal>
+        <Table
+          className="user-table"
+          tHeadClass="users-head-row"
+          tBodyClass="users-body"
+          columns={["ID", "Username", "Email"]}
+        >
+          {this.state.users.map((user, key) => {
+            return (
+              <TableRow
+                rownum={key}
+                key={key}
+                data={user}
+                className="users-row"
+                click={this.rowClick}
+              ></TableRow>
+            );
+          })}
+        </Table>
+      </div>
+    );
   }
 }
 

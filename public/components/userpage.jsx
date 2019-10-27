@@ -10,6 +10,32 @@ class UserPage extends React.Component {
       user: null,
       error: null
     };
+
+    this.deleteUser = this.deleteUser.bind(this);
+  }
+
+  deleteUser() {
+    if (!this.state.user || !this.state.user.id) {
+      return;
+    }
+    fetch("/api/users/", {
+      method: "delete",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: this.state.user.id })
+    })
+      .then(res => {
+        if (res.ok) return res.json();
+        else return Promise.reject(Error("Failed to delete user"));
+      })
+      .then(body => {
+        console.log(body);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+      .finally(() => {
+        window.location = "/";
+      });
   }
 
   componentDidMount() {
@@ -58,6 +84,7 @@ class UserPage extends React.Component {
           <h3>ID: {this.state.user.id}</h3>
           <h3>Username: {this.state.user.username}</h3>
           <h3>Email: {this.state.user.email}</h3>
+          <button onClick={this.deleteUser}>Delete User</button>
         </div>
       );
     } else {
