@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+var JavaScriptObfuscator = require("webpack-obfuscator");
 
 module.exports = {
   entry: "./public/index.jsx",
@@ -32,7 +33,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: "./public/index.html"
-    })
+    }),
+    new JavaScriptObfuscator({ rotateUnicodeArray: true })
   ],
   devServer: {
     contentBase: path.join(__dirname, "./public/dist"),
