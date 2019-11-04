@@ -15,9 +15,9 @@ var User = users.User;
 
 const newDbStmt = db.prepare(
   "CREATE TABLE IF NOT EXISTS users (" +
-    "id INTEGER PRIMARY KEY," +
-    "username VARCHAR(30) NOT NULL," +
-    "email VARCHAR(255) NOT NULL," +
+    "id VARCHAR(255) PRIMARY KEY," +
+    "username VARCHAR(30) UNIQUE NOT NULL," +
+    "email VARCHAR(255) UNIQUE NOT NULL," +
     "pass VARCHAR(512) NOT NULL," +
     "salt VARCHAR(512) NOT NULL," +
     "accountType INTEGER NOT NULL DEFAULT 0" +
@@ -50,28 +50,29 @@ app.post("/api/register", async (req, res) => {
     pass: password
   };
 
-  await verifyInformation(options, verification => {
-    if (!(verification === "good")) {
-      res.status(400).json({ error: verification });
-      console.log(verification);
-      return;
-    }
-    var salt = crypto.randomBytes(32).toString("hex");
-    var saltedPass = password + salt;
+  const verification = verifyInformation(options);
 
-    argon2.hash(saltedPass, { type: argon2.argon2id }).then(async result => {
-      var parsedResult = result.split("$");
-      options = {
-        username: username,
-        email: email,
-        salt: salt,
-        pass: parsedResult[5]
-      };
+  if (!(verification === true)) {
+    res.status(400).json({ error: verification });
+    console.log(verification);
+    return;
+  }
 
-      // insert user into db
-      var user = new User(username, email, parsedResult[5], salt);
-      await user.insert();
-    });
+  var salt = crypto.randomBytes(32).toString("hex");
+  var saltedPass = password + salt;
+
+  argon2.hash(saltedPass, { type: argon2.argon2id }).then(async result => {
+    var parsedResult = result.split("$");
+    options = {
+      username: username,
+      email: email,
+      salt: salt,
+      pass: parsedResult[5]
+    };
+
+    // insert user into db
+    var user = new User(username, email, parsedResult[5], salt);
+    user.insert();
   });
 });
 
@@ -83,33 +84,38 @@ app.get("/api/users/all/", (req, res) => {
 });
 
 app.delete("/api/users/", (req, res) => {
-  // this is where we should check if the user requesting this is an admin
-
   // delete a user
-  console.log("delete");
+
+  // this is where we should check if the user requesting this is an admin
   if (!req.body.id) {
     res.status(400).json({
       message: 'Bad post request: must have "id" (string)'
     });
   }
   console.log(`Trying to delete person with ID ${req.body.id}`);
+
+  const user = User.get(req.body.id);
+  const info = user.delete();
+
+  console.log(info);
 });
 
 app.get("/api/users/", (req, res) => {
   // get a specific user with query id
+  console.log('bunga');
   var id = req.query.id;
-  if (!id || isNaN(id)) {
+  if (!id) {
     res.status(400).json({ error: "Bad request, missing or invalid ID" });
     return;
   }
 
-  var user = User.get(parseInt(id));
+  var user = User.get(id);
   if (!user instanceof User) {
     res.status(500).json({ error: "Error in fetching from database" });
   }
 
   res.json(
-    JSON.stringify({ id: user.id, username: user.name, email: user.email })
+    JSON.stringify(user.stripped())
   );
 });
 
@@ -124,7 +130,7 @@ app.get("/*", (req, res) => {
 
 // ========================= HELPER FUNCTIONS ==========================
 
-async function verifyInformation(options, cb) {
+function verifyInformation(options) {
   var status = "good";
 
   // verify username length
@@ -145,33 +151,14 @@ async function verifyInformation(options, cb) {
   //}
 
   // verify username and email is unique
-  var promise = new Promise((resolve, reject) => {
-    db.each(
-      "SELECT username username, email email FROM users;",
-      (err, row) => {
-        if (row.username === options.username) {
-          reject(Error("Username is already in use!"));
-        }
+  const unique = User.checkUnique(options.username, options.email);
 
-        if (row.email === options.email) {
-          reject(Error("Email is already in use!"));
-        }
-      },
-      () => {
-        resolve("good");
-      }
-    );
-  });
-  promise
-    .then(result => {
-      status = "good";
-    })
-    .catch(err => {
-      status = `${err.message}`;
-    })
-    .finally(() => {
-      cb(status);
-    });
+  if(unique === true) {
+    return true;
+  } else {
+    status = unique.message;
+    return status;
+  }
 }
 
 function isEmail(str) {

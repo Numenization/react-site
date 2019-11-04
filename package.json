@@ -28,7 +28,7 @@
     "webpack-obfuscator": "^0.18.3"
   },
   "dependencies": {
-    "argon2": "^0.25.0",
+    "argon2": "^0.25.1",
     "better-sqlite3": "^5.4.3",
     "express": "^4.17.1",
     "query-string": "^6.8.3",

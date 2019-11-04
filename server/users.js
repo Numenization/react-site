@@ -1,5 +1,6 @@
 const argon2 = require("argon2");
 const Database = require("better-sqlite3");
+const uuid = require("uuid/v1");
 
 var db = null;
 
@@ -13,17 +14,18 @@ function setDatabase(database) {
 }
 
 class User {
-  constructor(name, email, pass, salt, id = null) {
-    this._name = name;
+  constructor(name, email, pass, salt, id = null, rowid = null) {
+    this._username = name;
     this._email = email;
     this._pass = pass;
     this._salt = salt;
-    this._id = id;
+    if(id) {
+      this._id = id;
+    } else {
+      this._id = uuid();
+    }
+    this._rowid = rowid;
     this._accountType = 0;
-  }
-
-  set id(id) {
-    this._id = id;
   }
 
   set accountType(accountType) {
@@ -39,7 +41,7 @@ class User {
   }
 
   get name() {
-    return this._name;
+    return this._username;
   }
 
   get email() {
@@ -66,7 +68,7 @@ class User {
     }
   }
 
-  async insert() {
+  insert() {
     // if we have an ID already we should check and see if we're in the db already
     var errorStatus;
     if (this._id) {
@@ -94,7 +96,7 @@ class User {
       "INSERT INTO users (id, username, email, pass, salt) VALUES(?,?,?,?,?)"
     );
     const info = stmt.run(
-      this._id ? this._id : null,
+      this._id,
       this._username,
       this._email,
       this._pass,
@@ -109,6 +111,21 @@ class User {
     }
   }
 
+  // TODO: implement
+  // Updates a user's values in the DB with a given user
+  update() {}
+
+  // returns a version of the user object that is safe to send to clients
+  // ie, no salt or password included
+  stripped() {
+    return {
+      id: this._id,
+      rowid: this._rowid,
+      username: this._username,
+      email: this._email
+    }
+  }
+
   // Returns a new user object with properties fetched from DB with given ID
   static get(id) {
     var username;
@@ -116,9 +133,10 @@ class User {
     var pass;
     var salt;
     var accountType;
+    var rowid;
 
     const stmt = db.prepare(
-      "SELECT username username, email email, pass pass, salt salt, accountType accountType FROM users WHERE id=?"
+      "SELECT username username, email email, pass pass, salt salt, accountType accountType, rowid rowid FROM users WHERE id=?"
     );
     const row = stmt.get(id);
 
@@ -135,15 +153,16 @@ class User {
     pass = row.pass;
     salt = row.salt;
     accountType = row.accountType;
+    rowid = row.rowid;
 
-    var user = new User(username, email, pass, salt, id);
+    var user = new User(username, email, pass, salt, id, rowid);
     user.accountType = accountType;
 
     return user;
   }
 
   static getAll() {
-    const stmt = db.prepare("SELECT id, username, email FROM users");
+    const stmt = db.prepare("SELECT id, username, email, rowid FROM users");
     const users = stmt.all();
 
     return users;
@@ -151,14 +170,29 @@ class User {
 
   // TODO: implement
   // Deletes a user from the DB with a given ID
-  static async delete(id) {}
+  static async delete(id) {
+    const stmt = db.prepare("DELETE FROM users WHERE id=?");
+    const info = stmt.run(id);
 
-  // TODO: implement
-  // Updates a user's values in the DB with a given user
-  static async update(user) {}
+    return info;
+  }
 
-  static test() {
-    console.log("test");
+  static checkUnique(username, email) {
+    // check username
+    const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
+    const result = stmt.get(username);
+    if(!result === undefined) {
+      // error
+      return new Error("Username is already in use!");
+    }
+
+    const stmt2 = db.prepare("SELECT * FROM users WHERE email = ?");
+    const result2 = stmt2.get(email);
+    if(!result === undefined) {
+      return new Error("Email is already in use!");
+    }
+
+    return true;
   }
 }
 

@@ -44,8 +44,6 @@ class UserPage extends React.Component {
     if (!queryValues["id"]) return <Redirect to="/users" />;
 
     var id = queryValues["id"];
-    if (isNaN(id)) return <Redirect to="/users" />;
-
     fetch(`/api/users?id=${id}`, {
       method: "get",
       headers: { "Content-Type": "application/json" }
@@ -81,7 +79,7 @@ class UserPage extends React.Component {
     } else if (this.state.user != undefined || this.state.user != null) {
       return (
         <div>
-          <h3>ID: {this.state.user.id}</h3>
+          <h3>ID: {this.state.user.rowid}</h3>
           <h3>Username: {this.state.user.username}</h3>
           <h3>Email: {this.state.user.email}</h3>
           <button onClick={this.deleteUser}>Delete User</button>

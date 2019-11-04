@@ -19,7 +19,7 @@ class TableRow extends React.Component {
           onClick={click}
           data-columns={JSON.stringify(this.state.data)}
         >
-          {this.state.data.id}
+          {this.state.data.rowid}
         </td>
         <td
           className={tdClass}

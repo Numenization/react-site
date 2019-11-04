@@ -84,7 +84,7 @@ class UserList extends React.Component {
     const modalInner = this.state.selectedUser ? (
       <div>
         <h1>User: {this.state.selectedUser.username}</h1>
-        <h3>ID: {this.state.selectedUser.id}</h3>
+        <h3>ID: {this.state.selectedUser.rowid}</h3>
         <h3>Email: {this.state.selectedUser.email}</h3>
         <button onClick={this.visitPage}>Go to User Page</button>
       </div>
