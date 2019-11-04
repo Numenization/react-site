@@ -1,11 +1,11 @@
-import React from "react";
-import crypto from "crypto";
-import PropTypes from "prop-types";
+import React from 'react';
+import crypto from 'crypto';
+import PropTypes from 'prop-types';
 
 class LoginForm extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { email: "", password: "", hashedPass: "" };
+    this.state = { email: '', password: '', hashedPass: '' };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -25,7 +25,7 @@ class LoginForm extends React.Component {
     }
 
     return (
-      <div id="register-form">
+      <div id='register-form'>
         <h3>User Login</h3>
         <form>
           <label>
@@ -33,8 +33,8 @@ class LoginForm extends React.Component {
             <br />
           </label>
           <input
-            type="text"
-            name="email"
+            type='text'
+            name='email'
             value={this.state.email}
             onChange={this.handleChange}
           ></input>
@@ -43,16 +43,16 @@ class LoginForm extends React.Component {
             <br />
           </label>
           <input
-            type="password"
-            name="password"
+            type='password'
+            name='password'
             value={this.state.password}
             onChange={this.handleChange}
           ></input>
-          <button type="button" value="Log In" onClick={this.handleSubmit}>
+          <button type='button' value='Log In' onClick={this.handleSubmit}>
             Log In
           </button>
         </form>
-        <button className="unstyled-button" onClick={this.props.onClose}>
+        <button className='unstyled-button' onClick={this.props.onClose}>
           Click here to register an account
         </button>
       </div>
@@ -63,15 +63,15 @@ class LoginForm extends React.Component {
 class RegisterForm extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { username: "", email: "", password: "", hashedPass: "" };
+    this.state = { username: '', email: '', password: '', hashedPass: '' };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleSubmit(event) {
-    const hash = crypto.createHash("sha256");
-    const pass = hash.update(this.state.password).digest("hex");
+    const hash = crypto.createHash('sha256');
+    const pass = hash.update(this.state.password).digest('hex');
     this.setState(
       {
         username: this.state.username,
@@ -80,9 +80,9 @@ class RegisterForm extends React.Component {
         hashedPass: pass
       },
       () => {
-        fetch("/api/register", {
-          method: "post",
-          headers: { "Content-Type": "application/json" },
+        fetch('/api/register', {
+          method: 'post',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             username: this.state.username,
             email: this.state.email,
@@ -118,7 +118,7 @@ class RegisterForm extends React.Component {
     }
 
     return (
-      <div id="register-form">
+      <div id='register-form'>
         <h3>User Registration</h3>
         <form>
           <label>
@@ -126,8 +126,8 @@ class RegisterForm extends React.Component {
             <br />
           </label>
           <input
-            type="text"
-            name="username"
+            type='text'
+            name='username'
             value={this.state.username}
             onChange={this.handleChange}
           />
@@ -137,8 +137,8 @@ class RegisterForm extends React.Component {
             <br />
           </label>
           <input
-            type="text"
-            name="email"
+            type='text'
+            name='email'
             value={this.state.email}
             onChange={this.handleChange}
           />
@@ -148,16 +148,16 @@ class RegisterForm extends React.Component {
             <br />
           </label>
           <input
-            type="password"
-            name="password"
+            type='password'
+            name='password'
             value={this.state.password}
             onChange={this.handleChange}
           />
-          <button type="button" value="Sign Up" onClick={this.handleSubmit}>
+          <button type='button' value='Sign Up' onClick={this.handleSubmit}>
             Sign Up
           </button>
         </form>
-        <button className="unstyled-button" onClick={this.props.onClose}>
+        <button className='unstyled-button' onClick={this.props.onClose}>
           Click here to log into existing account
         </button>
       </div>

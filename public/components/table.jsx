@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 class TableRow extends React.Component {
   constructor(props) {
@@ -77,9 +77,9 @@ class Table extends React.Component {
         <tbody className={tBodyClass}>
           {React.Children.map(this.props.children, (child, key) => {
             if (key % 2 == 0) {
-              return React.cloneElement(child, { id: "users-row-even" });
+              return React.cloneElement(child, { id: 'users-row-even' });
             } else {
-              return React.cloneElement(child, { id: "users-row-odd" });
+              return React.cloneElement(child, { id: 'users-row-odd' });
             }
           })}
         </tbody>

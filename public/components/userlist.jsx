@@ -1,6 +1,6 @@
-import React from "react";
-import { Table, TableRow } from "./table";
-import Modal from "./modal";
+import React from 'react';
+import { Table, TableRow } from './table';
+import Modal from './modal';
 
 class UserList extends React.Component {
   constructor(props) {
@@ -19,7 +19,7 @@ class UserList extends React.Component {
   }
 
   rowClick(e) {
-    const columnData = JSON.parse(e.target.getAttribute("data-columns"));
+    const columnData = JSON.parse(e.target.getAttribute('data-columns'));
     this.setState(
       {
         users: this.state.users,
@@ -47,9 +47,9 @@ class UserList extends React.Component {
   }
 
   getUsers() {
-    fetch("/api/users/all/", {
-      method: "get",
-      headers: { "Content-Type": "application/json" }
+    fetch('/api/users/all/', {
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' }
     })
       .then(res => {
         if (res.ok) return res.json();
@@ -92,26 +92,26 @@ class UserList extends React.Component {
 
     if (!this.state.users) {
       return (
-        <div className="user-list">
+        <div className='user-list'>
           <h1>No users in database!</h1>
         </div>
       );
     }
 
     return (
-      <div className="user-list">
+      <div className='user-list'>
         <Modal
           show={this.state.showModal}
           onClose={this.toggleModal}
-          style={{ width: "20%" }}
+          style={{ width: '20%' }}
         >
           {modalInner}
         </Modal>
         <Table
-          className="user-table"
-          tHeadClass="users-head-row"
-          tBodyClass="users-body"
-          columns={["ID", "Username", "Email"]}
+          className='user-table'
+          tHeadClass='users-head-row'
+          tBodyClass='users-body'
+          columns={['ID', 'Username', 'Email']}
         >
           {this.state.users.map((user, key) => {
             return (
@@ -119,7 +119,7 @@ class UserList extends React.Component {
                 rownum={key}
                 key={key}
                 data={user}
-                className="users-row"
+                className='users-row'
                 click={this.rowClick}
               ></TableRow>
             );

@@ -1,6 +1,6 @@
-import React from "react";
-import { Redirect } from "react-router-dom";
-import queryString from "query-string";
+import React from 'react';
+import { Redirect } from 'react-router-dom';
+import queryString from 'query-string';
 
 class UserPage extends React.Component {
   constructor(props) {
@@ -18,14 +18,14 @@ class UserPage extends React.Component {
     if (!this.state.user || !this.state.user.id) {
       return;
     }
-    fetch("/api/users/", {
-      method: "delete",
-      headers: { "Content-Type": "application/json" },
+    fetch('/api/users/', {
+      method: 'delete',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: this.state.user.id })
     })
       .then(res => {
         if (res.ok) return res.json();
-        else return Promise.reject(Error("Failed to delete user"));
+        else return Promise.reject(Error('Failed to delete user'));
       })
       .then(body => {
         console.log(body);
@@ -34,19 +34,19 @@ class UserPage extends React.Component {
         console.log(err);
       })
       .finally(() => {
-        window.location = "/";
+        window.location = '/';
       });
   }
 
   componentDidMount() {
-    if (!this.state.queryValues) return <Redirect to="/users" />;
+    if (!this.state.queryValues) return <Redirect to='/users' />;
     const queryValues = queryString.parse(this.state.queryValues);
-    if (!queryValues["id"]) return <Redirect to="/users" />;
+    if (!queryValues['id']) return <Redirect to='/users' />;
 
-    var id = queryValues["id"];
+    var id = queryValues['id'];
     fetch(`/api/users?id=${id}`, {
-      method: "get",
-      headers: { "Content-Type": "application/json" }
+      method: 'get',
+      headers: { 'Content-Type': 'application/json' }
     })
       .then(res => {
         if (res.ok) return res.json();

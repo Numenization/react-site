@@ -1,5 +1,5 @@
-import React from "react";
-import { LoginForm, RegisterForm } from "./login";
+import React from 'react';
+import { LoginForm, RegisterForm } from './login';
 
 class LoginPage extends React.Component {
   constructor(props) {
