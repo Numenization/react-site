@@ -31,6 +31,14 @@ h3 {
   margin: 0;
 }
 
+.unstyled-button {
+  border: none;
+  background-color: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* ============== NAVBAR CSS =============== */
 
 #navbar {
@@ -179,10 +187,12 @@ h3 {
 
 #users-row-odd {
   background-color: #ddd;
+  cursor: pointer;
 }
 
 #users-row-even {
   background-color: white;
+  cursor: pointer;
 }
 
 /* ============== MODAL CSS =============== */

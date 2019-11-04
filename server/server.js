@@ -1,18 +1,19 @@
 const express = require("express");
 const path = require("path");
-const sqlite3 = require("sqlite3");
+const Database = require("better-sqlite3");
 const argon2 = require("argon2");
 const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-let db = new sqlite3.Database("data.db", err => {
-  if (err) return console.error(err);
-  console.log("Connected to database");
-});
+var db = new Database("data.db", { verbose: console.log });
 
-db.run(
+const users = require("./users.js");
+users.setDatabase(db);
+var User = users.User;
+
+const newDbStmt = db.prepare(
   "CREATE TABLE IF NOT EXISTS users (" +
     "id INTEGER PRIMARY KEY," +
     "username VARCHAR(30) NOT NULL," +
@@ -22,6 +23,7 @@ db.run(
     "accountType INTEGER NOT NULL DEFAULT 0" +
     ");"
 );
+newDbStmt.run();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,7 +39,7 @@ app.post("/api/register", async (req, res) => {
 
   if (!username || !email || !password) {
     res.status(400).json({
-      error: `Invalid credentials - Username: ${username} Email: ${email} Password:${password}`
+      error: `Invalid credentials - Username: ${username} Email: ${email} Password: ${password}`
     });
     return;
   }
@@ -57,74 +59,33 @@ app.post("/api/register", async (req, res) => {
     var salt = crypto.randomBytes(32).toString("hex");
     var saltedPass = password + salt;
 
-    var hashedPass = argon2
-      .hash(saltedPass, { type: argon2.argon2id })
-      .then(result => {
-        var parsedResult = result.split("$");
-        options = {
-          username: username,
-          email: email,
-          salt: salt,
-          pass: parsedResult[5]
-        };
+    argon2.hash(saltedPass, { type: argon2.argon2id }).then(async result => {
+      var parsedResult = result.split("$");
+      options = {
+        username: username,
+        email: email,
+        salt: salt,
+        pass: parsedResult[5]
+      };
 
-        db.run(
-          "INSERT INTO users (id, username, email, pass, salt) VALUES(NULL,?,?,?,?)",
-          [options.username, options.email, options.pass, options.salt],
-          err => {
-            if (err) {
-              res.json({ error: `Failed to insert into table: ${err}` });
-              return console.error(err);
-            }
-            console.log(`Added ${options.username} to database`);
-            res.json({
-              message: `Inserted into table (${options.username} | ${options.email})`
-            });
-          }
-        );
-      });
+      // insert user into db
+      var user = new User(username, email, parsedResult[5], salt);
+      await user.insert();
+    });
   });
 });
 
 app.get("/api/users/all/", (req, res) => {
-  let users = [];
-  let promise = new Promise((resolve, reject) => {
-    db.each(
-      "SELECT username username, email email, id id FROM users;",
-      (err, row) => {
-        if (err) {
-          console.error(err);
-          reject(Error("Failed to fetch user table"));
-        }
-        const user = [row.id, row.username, row.email];
-        users.push(user);
-      },
-      (err, count) => {
-        if (err) {
-          console.error(err);
-          reject(Error("Failed to fetch user table"));
-        }
-        resolve(count);
-      }
-    );
-  });
+  // get all users and return as array
+  var users = User.getAll();
 
-  promise.then(
-    result => {
-      if (result > 0) {
-        res.json(users);
-      } else {
-        res.json({ message: "Users table is empty" });
-      }
-    },
-    err => {
-      res.status(400).res.json({ message: "Failed to fetch users table" });
-    }
-  );
+  res.json(JSON.stringify(users));
 });
 
 app.delete("/api/users/", (req, res) => {
   // this is where we should check if the user requesting this is an admin
+
+  // delete a user
   console.log("delete");
   if (!req.body.id) {
     res.status(400).json({
@@ -132,33 +93,23 @@ app.delete("/api/users/", (req, res) => {
     });
   }
   console.log(`Trying to delete person with ID ${req.body.id}`);
-  db.run(`DELETE FROM users WHERE id = ?`, req.body.id, err => {
-    if (err) {
-      res.status(500).json({ message: `Failed to delete from table: ${err}` });
-      return console.error(err);
-    }
-    console.log(`Deleted user with ID ${req.body.id} from database`);
-    res.json({ message: `Deleted from table (${req.body.id})` });
-  });
 });
 
 app.get("/api/users/", (req, res) => {
+  // get a specific user with query id
   var id = req.query.id;
   if (!id || isNaN(id)) {
-    res.status(400).json({ message: "Bad request, missing or invalid ID" });
+    res.status(400).json({ error: "Bad request, missing or invalid ID" });
     return;
   }
 
-  db.get(
-    "SELECT username username, email email FROM users WHERE id=?",
-    id,
-    (err, row) => {
-      if (err) {
-        res.status(400).json({ message: `Bad request: ${err}` });
-        return;
-      }
-      res.json({ id: id, username: row.username, email: row.email });
-    }
+  var user = User.get(parseInt(id));
+  if (!user instanceof User) {
+    res.status(500).json({ error: "Error in fetching from database" });
+  }
+
+  res.json(
+    JSON.stringify({ id: user.id, username: user.name, email: user.email })
   );
 });
 

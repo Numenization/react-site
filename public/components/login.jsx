@@ -1,7 +1,66 @@
 import React from "react";
 import crypto from "crypto";
+import PropTypes from "prop-types";
 
-class registerForm extends React.Component {
+class LoginForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { email: "", password: "", hashedPass: "" };
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+
+  handleSubmit(event) {}
+
+  render() {
+    if (!this.props.show) {
+      return null;
+    }
+
+    return (
+      <div id="register-form">
+        <h3>User Login</h3>
+        <form>
+          <label>
+            Email:
+            <br />
+          </label>
+          <input
+            type="text"
+            name="email"
+            value={this.state.email}
+            onChange={this.handleChange}
+          ></input>
+          <label>
+            Password:
+            <br />
+          </label>
+          <input
+            type="password"
+            name="password"
+            value={this.state.password}
+            onChange={this.handleChange}
+          ></input>
+          <button type="button" value="Log In" onClick={this.handleSubmit}>
+            Log In
+          </button>
+        </form>
+        <button className="unstyled-button" onClick={this.props.onClose}>
+          Click here to register an account
+        </button>
+      </div>
+    );
+  }
+}
+
+class RegisterForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = { username: "", email: "", password: "", hashedPass: "" };
@@ -54,6 +113,10 @@ class registerForm extends React.Component {
   }
 
   render() {
+    if (!this.props.show) {
+      return null;
+    }
+
     return (
       <div id="register-form">
         <h3>User Registration</h3>
@@ -94,9 +157,24 @@ class registerForm extends React.Component {
             Sign Up
           </button>
         </form>
+        <button className="unstyled-button" onClick={this.props.onClose}>
+          Click here to log into existing account
+        </button>
       </div>
     );
   }
 }
 
-export default registerForm;
+LoginForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  show: PropTypes.bool,
+  children: PropTypes.node
+};
+
+RegisterForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  show: PropTypes.bool,
+  children: PropTypes.node
+};
+
+export { RegisterForm, LoginForm };

@@ -14,22 +14,44 @@ class TableRow extends React.Component {
 
     return (
       <tr className={className} id={id}>
-        {this.state.data.map((col, key) => {
-          return (
-            <td
-              className={tdClass}
-              key={key}
-              onClick={click}
-              data-columns={this.state.data}
-            >
-              {col}
-            </td>
-          );
-        })}
+        <td
+          className={tdClass}
+          onClick={click}
+          data-columns={JSON.stringify(this.state.data)}
+        >
+          {this.state.data.id}
+        </td>
+        <td
+          className={tdClass}
+          onClick={click}
+          data-columns={JSON.stringify(this.state.data)}
+        >
+          {this.state.data.username}
+        </td>
+        <td
+          className={tdClass}
+          onClick={click}
+          data-columns={JSON.stringify(this.state.data)}
+        >
+          {this.state.data.email}
+        </td>
       </tr>
     );
   }
 }
+
+/* {this.state.data.map((col, key) => {
+  return (
+    <td
+      className={tdClass}
+      key={key}
+      onClick={click}
+      data-columns={this.state.data}
+    >
+      {col}
+    </td>
+  );
+})} */
 
 class Table extends React.Component {
   constructor(props) {

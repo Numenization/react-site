@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import NavBar from "./components/navbar";
 import UserList from "./components/userlist";
-import LoginForm from "./components/loginform";
+import LoginPage from "./components/loginpage";
 import UserPage from "./components/userpage";
 import "./css/styles.css";
 
@@ -22,7 +22,7 @@ class App extends React.Component {
               <Route path="/user" component={UserPage} />
 
               <Route path="/login">
-                <LoginForm />
+                <LoginPage />
               </Route>
 
               <Route path="/">

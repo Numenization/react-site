@@ -57,7 +57,7 @@ class UserPage extends React.Component {
       .then(body => {
         this.setState({
           queryValues: this.state.queryValues,
-          user: body,
+          user: JSON.parse(body),
           error: this.state.error
         });
       })

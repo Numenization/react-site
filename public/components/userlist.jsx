@@ -19,7 +19,7 @@ class UserList extends React.Component {
   }
 
   rowClick(e) {
-    const columnData = e.target.getAttribute("data-columns").split(",");
+    const columnData = JSON.parse(e.target.getAttribute("data-columns"));
     this.setState(
       {
         users: this.state.users,
@@ -34,7 +34,7 @@ class UserList extends React.Component {
   }
 
   visitPage() {
-    window.location = `user?id=${this.state.selectedUser[0]}`;
+    window.location = `user?id=${this.state.selectedUser.id}`;
   }
 
   toggleModal() {
@@ -60,7 +60,7 @@ class UserList extends React.Component {
           return Promise.reject(Error(body.message));
         }
         this.setState({
-          users: body,
+          users: JSON.parse(body),
           error: this.state.error,
           showModal: this.state.showModal,
           selectedUser: this.state.selectedUser
@@ -83,9 +83,9 @@ class UserList extends React.Component {
   render() {
     const modalInner = this.state.selectedUser ? (
       <div>
-        <h1>User: {this.state.selectedUser[1]}</h1>
-        <h3>ID: {this.state.selectedUser[0]}</h3>
-        <h3>Email: {this.state.selectedUser[2]}</h3>
+        <h1>User: {this.state.selectedUser.username}</h1>
+        <h3>ID: {this.state.selectedUser.id}</h3>
+        <h3>Email: {this.state.selectedUser.email}</h3>
         <button onClick={this.visitPage}>Go to User Page</button>
       </div>
     ) : null;
