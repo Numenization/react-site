@@ -30,7 +30,10 @@
   "dependencies": {
     "argon2": "^0.25.1",
     "better-sqlite3": "^5.4.3",
+    "connect": "^3.7.0",
+    "connect-sqlite3": "^0.9.11",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "query-string": "^6.8.3",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",

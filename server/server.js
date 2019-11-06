@@ -1,35 +1,65 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const readline = require('readline');
 const Database = require('better-sqlite3');
 const argon2 = require('argon2');
 const crypto = require('crypto');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-var db = new Database('data.db', { verbose: console.log });
+var db = new Database(path.join(__dirname, '../data.db'), {
+  verbose: console.log
+});
+var SQLiteStore = require('connect-sqlite3')(session);
 
-const users = require('./users.js');
+const users = require(path.join(__dirname, './users.js'));
 users.setDatabase(db);
 var User = users.User;
 
-const newDbStmt = db.prepare(
-  'CREATE TABLE IF NOT EXISTS users (' +
-    'id VARCHAR(255) PRIMARY KEY,' +
-    'username VARCHAR(30) UNIQUE NOT NULL,' +
-    'email VARCHAR(255) UNIQUE NOT NULL,' +
-    'pass VARCHAR(512) NOT NULL,' +
-    'salt VARCHAR(512) NOT NULL,' +
-    'accountType INTEGER NOT NULL DEFAULT 0' +
-    ');'
-);
-if (!fs.existsSync('data.db')) {
-  newDbStmt.run();
+if (true) {
+  db.exec(fs.readFileSync(path.join(__dirname, 'database.sql'), 'utf8'));
 }
 
+const readStream = readline.createInterface({
+  input: fs.createReadStream(path.join(__dirname, '../secret'))
+});
+readStream.on('line', line => {
+  app.use(
+    session({
+      extended: false,
+      name: 'Heyo',
+      resave: true,
+      saveUninitialized: true,
+      secret: line,
+      store: new SQLiteStore({
+        db: 'sessions',
+        dir: path.join(__dirname, '../')
+      })
+    })
+  );
+});
+
+// ===================== EXPRESS MIDDLEWARE ======================
+
+var requestTime = function(req, res, next) {
+  req.time = Date.now();
+  next();
+};
+
+var logger = function(req, res, next) {
+  console.log(`${req.ip} -> ${req.method}/${req.originalUrl}`);
+  next();
+};
+
+var authLevel = function(req, res, next) {};
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded());
+app.use(requestTime);
+app.use(logger);
 
 // ===================== EXPRESS ROUTES ===========================
 
