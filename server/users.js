@@ -170,9 +170,9 @@ class User {
 
   // TODO: implement
   // Deletes a user from the DB with a given ID
-  static async delete(id) {
+  delete() {
     const stmt = db.prepare('DELETE FROM users WHERE id=?');
-    const info = stmt.run(id);
+    const info = stmt.run(this._id);
 
     return info;
   }
