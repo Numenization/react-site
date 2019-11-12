@@ -63,3 +63,5 @@ typings/
 data.db
 .vscode/
 public/dist/
+sessions
+secret

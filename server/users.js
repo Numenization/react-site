@@ -1,13 +1,13 @@
-const argon2 = require('argon2');
-const Database = require('better-sqlite3');
-const uuid = require('uuid/v1');
+const argon2 = require("argon2");
+const Database = require("better-sqlite3");
+const uuid = require("uuid/v1");
 
 var db = null;
 
 function setDatabase(database) {
   if (!(database instanceof Database)) {
     console.error(
-      'Users database argument is either missing or not a sqlite3 database!'
+      "Users database argument is either missing or not a sqlite3 database!"
     );
   }
   db = database;
@@ -30,6 +30,14 @@ class User {
 
   set accountType(accountType) {
     this._accountType = accountType;
+  }
+
+  set name(name) {
+    this._username = name;
+  }
+
+  set email(email) {
+    this._email = email;
   }
 
   get accountType() {
@@ -55,16 +63,16 @@ class User {
   // Tries to validate the user with a given hash
   async validate(hash) {
     if (!this._id) {
-      return new Error('ID is not set for user validation!');
+      return new Error("ID is not set for user validation!");
     }
 
     if (!this._pass || !this._salt)
-      return new Error('User pass or salt missing in validation!');
+      return new Error("User pass or salt missing in validation!");
 
     if (await argon2.verify(hash + this._salt, this._pass)) {
       return true;
     } else {
-      return Error('Password is incorrect!');
+      return Error("Password is incorrect!");
     }
   }
 
@@ -73,27 +81,27 @@ class User {
     var errorStatus;
     if (this._id) {
       const findIdStmt = db.prepare(
-        'SELECT username username FROM users WHERE id=?'
+        "SELECT username username FROM users WHERE id=?"
       );
       const findId = findIdStmt.get(this._id);
       if (findId) {
-        return new Error('User already in database!');
+        return new Error("User already in database!");
       }
     }
 
     //if (errorStatus) return errorStatus;
 
     // now lets check and see if we have a unique email and username
-    const emailUsernameStmt = db.prepare('SELECT * FROM users');
+    const emailUsernameStmt = db.prepare("SELECT * FROM users");
     for (const user of emailUsernameStmt.iterate()) {
       if (user.username == this._username || user.email == this._email) {
-        return new Error('User already in database!');
+        return new Error("User already in database!");
       }
     }
 
     // should be good to insert into database now
     const stmt = db.prepare(
-      'INSERT INTO users (id, username, email, pass, salt) VALUES(?,?,?,?,?)'
+      "INSERT INTO users (id, username, email, pass, salt) VALUES(?,?,?,?,?)"
     );
     const info = stmt.run(
       this._id,
@@ -105,7 +113,7 @@ class User {
 
     if (info.changes == 0) {
       // error in inserting
-      return new Error('Error in inserting into DB');
+      return new Error("Error in inserting into DB");
     } else {
       return true;
     }
@@ -113,7 +121,20 @@ class User {
 
   // TODO: implement
   // Updates a user's values in the DB with a given user
-  update() {}
+  update() {
+    const stmt = db.prepare(
+      "UPDATE users SET username=?, email=?, pass=?, salt=? WHERE id=?"
+    );
+    const info = stmt.run(
+      this._username,
+      this._email,
+      this._pass,
+      this._salt,
+      this._id
+    );
+
+    console.log(info);
+  }
 
   // returns a version of the user object that is safe to send to clients
   // ie, no salt or password included
@@ -136,7 +157,7 @@ class User {
     var rowid;
 
     const stmt = db.prepare(
-      'SELECT username username, email email, pass pass, salt salt, accountType accountType, rowid rowid FROM users WHERE id=?'
+      "SELECT username username, email email, pass pass, salt salt, accountType accountType, rowid rowid FROM users WHERE id=?"
     );
     const row = stmt.get(id);
 
@@ -162,16 +183,15 @@ class User {
   }
 
   static getAll() {
-    const stmt = db.prepare('SELECT id, username, email, rowid FROM users');
+    const stmt = db.prepare("SELECT id, username, email, rowid FROM users");
     const users = stmt.all();
 
     return users;
   }
 
-  // TODO: implement
   // Deletes a user from the DB with a given ID
   delete() {
-    const stmt = db.prepare('DELETE FROM users WHERE id=?');
+    const stmt = db.prepare("DELETE FROM users WHERE id=?");
     const info = stmt.run(this._id);
 
     return info;
@@ -179,17 +199,17 @@ class User {
 
   static checkUnique(username, email) {
     // check username
-    const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+    const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
     const result = stmt.get(username);
     if (!result === undefined) {
       // error
-      return new Error('Username is already in use!');
+      return new Error("Username is already in use!");
     }
 
-    const stmt2 = db.prepare('SELECT * FROM users WHERE email = ?');
+    const stmt2 = db.prepare("SELECT * FROM users WHERE email = ?");
     const result2 = stmt2.get(email);
     if (!result === undefined) {
-      return new Error('Email is already in use!');
+      return new Error("Email is already in use!");
     }
 
     return true;

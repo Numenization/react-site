@@ -1,42 +1,42 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const readline = require('readline');
-const Database = require('better-sqlite3');
-const argon2 = require('argon2');
-const crypto = require('crypto');
-const session = require('express-session');
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const readline = require("readline");
+const Database = require("better-sqlite3");
+const argon2 = require("argon2");
+const crypto = require("crypto");
+const session = require("express-session");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-var db = new Database(path.join(__dirname, '../data.db'), {
+var db = new Database(path.join(__dirname, "../data.db"), {
   verbose: console.log
 });
-var SQLiteStore = require('connect-sqlite3')(session);
+var SQLiteStore = require("connect-sqlite3")(session);
 
-const users = require(path.join(__dirname, './users.js'));
+const users = require(path.join(__dirname, "./users.js"));
 users.setDatabase(db);
 var User = users.User;
 
 if (true) {
-  db.exec(fs.readFileSync(path.join(__dirname, 'database.sql'), 'utf8'));
+  db.exec(fs.readFileSync(path.join(__dirname, "database.sql"), "utf8"));
 }
 
 const readStream = readline.createInterface({
-  input: fs.createReadStream(path.join(__dirname, '../secret'))
+  input: fs.createReadStream(path.join(__dirname, "../secret"))
 });
-readStream.on('line', line => {
+readStream.on("line", line => {
   app.use(
     session({
       extended: false,
-      name: 'Heyo',
+      name: "Heyo",
       resave: true,
       saveUninitialized: true,
       secret: line,
       store: new SQLiteStore({
-        db: 'sessions',
-        dir: path.join(__dirname, '../')
+        db: "sessions",
+        dir: path.join(__dirname, "../")
       })
     })
   );
@@ -63,9 +63,9 @@ app.use(logger);
 
 // ===================== EXPRESS ROUTES ===========================
 
-app.use(express.static(path.join(__dirname, '../public/dist')));
+app.use(express.static(path.join(__dirname, "../public/dist")));
 
-app.post('/api/register', async (req, res) => {
+app.post("/api/register", async (req, res) => {
   let username = req.body.username;
   let email = req.body.email;
   let password = req.body.password;
@@ -91,11 +91,11 @@ app.post('/api/register', async (req, res) => {
     return;
   }
 
-  var salt = crypto.randomBytes(32).toString('hex');
+  var salt = crypto.randomBytes(32).toString("hex");
   var saltedPass = password + salt;
 
   argon2.hash(saltedPass, { type: argon2.argon2id }).then(async result => {
-    var parsedResult = result.split('$');
+    var parsedResult = result.split("$");
     options = {
       username: username,
       email: email,
@@ -109,14 +109,14 @@ app.post('/api/register', async (req, res) => {
   });
 });
 
-app.get('/api/users/all/', (req, res) => {
+app.get("/api/users/all/", (req, res) => {
   // get all users and return as array
   var users = User.getAll();
 
   res.json(JSON.stringify(users));
 });
 
-app.delete('/api/users/', (req, res) => {
+app.delete("/api/users/", (req, res) => {
   // delete a user
 
   // this is where we should check if the user requesting this is an admin
@@ -133,25 +133,44 @@ app.delete('/api/users/', (req, res) => {
   console.log(info);
 });
 
-app.get('/api/users/', (req, res) => {
+app.patch("/api/users/", (req, res) => {
+  // update an existing user
+  // TODO: what if user not found? what if empty name/email fields?
+
+  if (!req.body.id) {
+    res.status(400).json({ message: 'Bad request: missing "id"' });
+  }
+
+  console.log(`Updating user with ID ${req.body.id}`);
+
+  const user = User.get(req.body.id);
+  user.email = req.body.email;
+  user.name = req.body.username;
+
+  user.update();
+
+  res.status(200).json({ message: "Updated user" });
+});
+
+app.get("/api/users/", (req, res) => {
   // get a specific user with query id
   var id = req.query.id;
   if (!id) {
-    res.status(400).json({ error: 'Bad request, missing or invalid ID' });
+    res.status(400).json({ error: "Bad request, missing or invalid ID" });
     return;
   }
 
   var user = User.get(id);
   if (!user instanceof User) {
-    res.status(500).json({ error: 'Error in fetching from database' });
+    res.status(500).json({ error: "Error in fetching from database" });
   }
 
   res.json(JSON.stringify(user.stripped()));
 });
 
-app.get('/*', (req, res) => {
+app.get("/*", (req, res) => {
   // just send em the homepage
-  res.sendFile(path.join(__dirname, 'public/dist/index.html'), err => {
+  res.sendFile(path.join(__dirname, "public/dist/index.html"), err => {
     if (err) {
       res.status(500).send(err);
     }
@@ -161,17 +180,17 @@ app.get('/*', (req, res) => {
 // ========================= HELPER FUNCTIONS ==========================
 
 function verifyInformation(options) {
-  var status = 'good';
+  var status = "good";
 
   // verify username length
   if (options.username.length > 30) {
-    status = 'Username is too long!';
+    status = "Username is too long!";
     return status;
   }
 
   // verify email format
   if (!isEmail(options.email)) {
-    status = 'Email is invalid!';
+    status = "Email is invalid!";
     return status;
   }
 
